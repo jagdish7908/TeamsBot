@@ -1,37 +1,36 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 
+var CONSTANTS = {
+    INTRO_MSG: "Hi, I'm Jarvis 🙂. I'll help in automating some routine tasks such as checking project score, dashboard, etc. I'm still under development. I'll meet you soon in your teams channel ✌️! Try sending @update or @intro",
+    BOT_NAME: "Jarvis"
+};
+
 // Setup Restify Server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {
     console.log('%s listening to %s', server.name, server.url);
 });
 
-// Create chat connector for communicating with the Bot Framework Service
+// Bot Storage: Here we register the state storage for your bot. 
+// Default store: volatile in-memory store - Only for prototyping!
+// We provide adapters for Azure Table, CosmosDb, SQL Azure, or you can implement your own!
+// For samples and documentation, see: https://github.com/Microsoft/BotBuilder-Azure
+var inMemoryStorage = new builder.MemoryBotStorage();
+
+
+// Setup bot and default message handler
 var connector = new builder.ChatConnector({
     appId: process.env.MicrosoftAppId,
     appPassword: process.env.MicrosoftAppPassword
 });
 
-
-/*
-// Listen for messages from users 
-server.post('/api/messages', connector.listen());
-// Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
-var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("You said: %s", session.message.text);
-});
-*/
-
-var inMemoryStorage = new builder.MemoryBotStorage();
-
-var bot = new builder.UniversalBot(connector)
-    .set('storage', inMemoryStorage); // Register in-memory storage 
-
-// listen for messages
 server.post('/api/messages', connector.listen());
 
-/*
+var bot = new builder.UniversalBot(connector, function (session){
+    // session.send("Hmm..");
+}).set('storage', inMemoryStorage); // Register in memory storage
+
 // send greetings when bot isadded/removed
 bot.on('conversationUpdate', function (message) {
     if (message.membersAdded && message.membersAdded.length > 0) {
@@ -39,8 +38,8 @@ bot.on('conversationUpdate', function (message) {
         var isGroup = message.address.conversation.isGroup;
         var txt = isGroup ? "Hello everyone!" : "Hello...";
         var reply = new builder.Message()
-                .address(message.address)
-                .text(txt);
+            .address(message.address)
+            .text(txt);
         bot.send(reply);
     } else if (message.membersRemoved) {
         // See if bot was removed
@@ -49,44 +48,14 @@ bot.on('conversationUpdate', function (message) {
             if (message.membersRemoved[i].id === botId) {
                 // Say goodbye
                 var reply = new builder.Message()
-                        .address(message.address)
-                        .text("Goodbye");
+                    .address(message.address)
+                    .text("Fairfarren");
                 bot.send(reply);
                 break;
             }
         }
     }
 });
-*/
-
-// Send welcome when conversation with bot is started, by initiating the root dialog
-bot.on('conversationUpdate', function (message) {
-    console.log('updated conversation');
-    bot.beginDialog(message.address, '/');
-    /*
-    if (message.membersAdded) {
-        message.membersAdded.forEach(function (identity) {
-            console.log("MemberIdentity : "+identity);
-            if (identity.id === message.address.bot.id) {
-                bot.beginDialog(message.address, '/');
-            }
-        });
-    }
-    */
-});
-
-
-// send simple notification    
-function sendProactiveMessage(session) {
-    var msg = new builder.Message(session).attachments([{
-        contentType: "image/jpeg",
-        contentUrl: "https://image.slidesharecdn.com/talkingbots-170330185224/95/ai-bots-nlp-slack-and-alexa-12-638.jpg?cb=1490900015"
-    }]);
-    // var msg = new builder.Message();
-    msg.text('Hello, this is a notification');
-    msg.textLocale('en-US');
-    bot.send(msg);
-}
 
 
 bot.dialog('adhocDialog', function (session, args) {
@@ -98,14 +67,22 @@ bot.dialog('adhocDialog', function (session, args) {
     // var message = 'Hello user, good to meet you! I now know your address and can send you notifications in the future.';
     // session.send(message);
 
-    setTimeout(function () {
-        sendProactiveMessage(session);
-       }, 2000);
-    session.endDialog('Fairfarren!');
+    var msg = new builder.Message(session).attachments([{
+        contentType: "image/jpeg",
+        contentUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg"
+    }]);
+    // var msg = new builder.Message();
+    msg.text('Here is your update');
+    msg.textLocale('en-US');
+    bot.send(msg);
+    session.endDialog();
 }).triggerAction({
     matches: /^@update$/i
 });
 
-bot.dialog('/', function (session, args) {
-    session.send('Hmm..');
+bot.dialog('introduction', function (session, args) {
+    session.send(CONSTANTS.INTRO_MSG);
+    session.endDialog();
+}).triggerAction({
+    matches: /^@intro$/i
 });
