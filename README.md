@@ -21,3 +21,5 @@ $ npm install
 ```console
 $ node app.js
 ```
+To test the bot in local environment, install and open BotFramework-Emulator and enter http://localhost:3978/api/messages in the endpoint url</br>
+![Alt text](emulator.png "Emulator")
