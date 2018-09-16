@@ -1,5 +1,5 @@
-# TeamsBot  :zap: 
-> *Chatbot for automating things in team collaboration tools like Slack, Teams*</br>
+# TeamsBot
+> *:zap: Chatbot for automating things in team collaboration tools like Slack, Teams*</br>
 
 ### Table of Contents
 * [Prerequisites](#prerequisites)
